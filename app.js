@@ -17,6 +17,7 @@ const elSubcategory = document.getElementById("subcategory");
 const elWordsContainer = document.getElementById("words-container");
 const elToken = document.getElementById("github-token");
 const elLang = document.getElementById("lang-select");
+const elPack = document.getElementById("pack-select");
 const elApp = document.getElementById("app");
 const elLoading = document.getElementById("loading");
 
@@ -26,8 +27,8 @@ function init() {
     elLang.value = LANG;
 
     if (currentToken) {
-        // Attempt to load
-        fetchPack();
+        // Load Manifest first, then Pack
+        fetchManifest();
     } else {
         showStatus("Please enter your GitHub Token to start.");
     }
@@ -42,21 +43,69 @@ window.changeLang = () => {
     // Reset data
     currentPack = { Levels: [] };
     renderLevel(); // Clear UI
+    if (currentToken) fetchManifest();
+};
+
+window.changePack = () => {
+    // Pack changed
     if (currentToken) fetchPack();
 };
 
 // --- GitHub API ---
 
+async function fetchManifest() {
+    if (!currentToken) return;
+
+    showStatus("Fetching Manifest...");
+    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${LANG}/manifest.json?ref=${GITHUB_BRANCH}`;
+
+    try {
+        const response = await fetch(url, { headers: { "Authorization": `token ${currentToken}` } });
+        if (!response.ok) {
+            // Fallback if manifest doesn't exist
+            console.warn("Manifest not found, defaulting to pack_1.json");
+            populatePackSelect(["pack_1.json"]);
+            fetchPack();
+            return;
+        }
+
+        const data = await response.json();
+        const content = atob(data.content.replace(/\n/g, ""));
+        const manifest = JSON.parse(content);
+
+        populatePackSelect(manifest.Packs || ["pack_1.json"]);
+        fetchPack(); // Load first pack
+
+    } catch (e) {
+        console.error(e);
+        // Fallback
+        populatePackSelect(["pack_1.json"]);
+        fetchPack();
+    }
+}
+
+function populatePackSelect(packs) {
+    elPack.innerHTML = "";
+    packs.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p.replace(".json", "").replace("_", " ").toUpperCase();
+        elPack.appendChild(opt);
+    });
+}
+
 async function fetchPack() {
+    let packName = elPack.value || "pack_1.json";
+
     if (!currentToken) {
         showStatus("Missing Token!");
         return;
     }
 
     showLoading(true);
-    showStatus("Fetching from GitHub...");
+    showStatus(`Fetching ${packName}...`);
 
-    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${LANG}/pack_1.json?ref=${GITHUB_BRANCH}`;
+    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${LANG}/${packName}?ref=${GITHUB_BRANCH}`;
 
     try {
         const response = await fetch(url, {
@@ -109,10 +158,15 @@ async function fetchPack() {
 async function syncToGitHub() {
     if (!currentToken) return;
 
-    showLoading(true);
-    showStatus("Syncing to GitHub...");
+    let packName = elPack.value || "pack_1.json";
 
-    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${LANG}/pack_1.json`;
+    showLoading(true);
+    showStatus(`Syncing ${packName} to GitHub...`);
+
+    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${LANG}/${packName}`;
+
+    // Check if we have the SHA for THIS pack? 
+    // fetchPack() sets packSha. Assuming we just loaded it.
 
     // Prepare Content
     // We typically want to save just the array if that's how it's stored, 
@@ -124,7 +178,7 @@ async function syncToGitHub() {
     const contentBase64 = btoa(unescape(encodeURIComponent(contentStr))); // Unicode safe b64
 
     const body = {
-        message: `Update ${LANG}/pack_1.json via Web Polisher`,
+        message: `Update ${LANG}/${packName} via Web Polisher`,
         content: contentBase64,
         sha: packSha,
         branch: GITHUB_BRANCH
