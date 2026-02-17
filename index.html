@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zen Level Polisher</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="loading" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; justify-content:center; align-items:center; color:white; font-size:2rem;">
+        Loading...
+    </div>
+
+    <div id="app">
+        <header>
+            <h1>Zen Polisher (Web)</h1>
+            <div id="status-bar">Ready</div>
+        </header>
+
+        <!-- Navigation -->
+        <div class="controls">
+            <button onclick="navLevel(-10)">&lt;&lt;</button>
+            <button onclick="navLevel(-1)">&lt;</button>
+            
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span>Level:</span>
+                <input type="number" id="level-id" value="1" style="width:60px; text-align:center;">
+            </div>
+
+            <button onclick="navLevel(1)">&gt;</button>
+            <button onclick="navLevel(10)">&gt;&gt;</button>
+        </div>
+
+        <!-- Editor -->
+        <div class="level-container">
+            <div class="field-group row">
+                <div style="flex:1">
+                    <label>Category</label>
+                    <input type="text" id="category" onchange="saveMeta()">
+                </div>
+                <div style="flex:1">
+                    <label>Subcategory</label>
+                    <input type="text" id="subcategory" onchange="saveMeta()">
+                </div>
+            </div>
+
+            <hr style="border-color:#333; margin: 20px 0;">
+
+            <div id="words-container">
+                <!-- Word Cards Injected Here -->
+            </div>
+        </div>
+
+        <!-- Sync -->
+        <div class="sync-section">
+            <h3>GitHub Sync</h3>
+            <div class="sync-controls">
+                <div class="row">
+                    <input type="password" id="github-token" placeholder="GitHub Personal Access Token">
+                    <button onclick="saveToken()">Save Token</button>
+                </div>
+                <div class="row" style="margin-top:10px;">
+                    <button class="danger" onclick="forcePull()" style="flex:1">Force Pull (Reload)</button>
+                    <button class="primary" onclick="pushToGithub()" style="flex:1">SYNC TO GITHUB (PUSH)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
