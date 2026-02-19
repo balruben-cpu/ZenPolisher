@@ -1,7 +1,7 @@
 const GITHUB_USER = "balruben-cpu";
 const GITHUB_REPO = "Zen_Data";
 const GITHUB_BRANCH = "main";
-let LANG = localStorage.getItem("ZenPolisherLang") || "en";
+let LANG = localStorage.getItem("ZenLang") || "en";
 
 // State
 let currentToken = localStorage.getItem("ZenGithubToken") || "";
@@ -39,7 +39,7 @@ function init() {
 
 window.changeLang = () => {
     LANG = elLang.value;
-    localStorage.setItem("ZenPolisherLang", LANG);
+    localStorage.setItem("ZenLang", LANG);
     // Reset data
     currentPack = { Levels: [] };
     renderLevel(); // Clear UI
@@ -53,12 +53,40 @@ window.changePack = () => {
 
 // --- GitHub API ---
 
-// Helper for UTF-8 Base64 decoding
+// --- UTF-8 Safe Base64 Helpers ---
+
+function uint8ArrayToBase64(uint8Array) {
+    let binary = '';
+    const len = uint8Array.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(uint8Array[i]);
+    }
+    return btoa(binary);
+}
+
+function base64ToUint8Array(base64) {
+    const binary = atob(base64);
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+}
+
 function b64DecodeUnicode(str) {
-    // Going backwards: from bytestream, to percent-encoding, to original string.
-    return decodeURIComponent(atob(str).split('').map(function (c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+    try {
+        const bytes = base64ToUint8Array(str.replace(/\s/g, ""));
+        return new TextDecoder().decode(bytes);
+    } catch (e) {
+        console.error("Decoding error:", e);
+        return "";
+    }
+}
+
+function b64EncodeUnicode(str) {
+    const bytes = new TextEncoder().encode(str);
+    return uint8ArrayToBase64(bytes);
 }
 
 async function fetchManifest() {
@@ -182,7 +210,7 @@ async function syncToGitHub() {
     // So it SAVES the wrapper `{"Levels": [...]}`.
 
     const contentStr = JSON.stringify(currentPack, null, 2);
-    const contentBase64 = btoa(unescape(encodeURIComponent(contentStr))); // Unicode safe b64
+    const contentBase64 = b64EncodeUnicode(contentStr);
 
     const body = {
         message: `Update ${LANG}/${packName} via Web Polisher`,
