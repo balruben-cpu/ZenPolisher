@@ -5,8 +5,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - Zen</title>
-    <link rel="stylesheet" href="../style.css">
     <style>
+        /* Zen Web Polisher - Dark Theme */
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #bb86fc;
+            --secondary-color: #03dac6;
+            --error-color: #cf6679;
+            --input-bg: #2c2c2c;
+            --border-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: var(--accent-color);
+        }
+
         .legal-content {
             background: var(--card-bg);
             padding: 30px;
