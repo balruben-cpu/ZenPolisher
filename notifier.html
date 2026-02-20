@@ -297,7 +297,7 @@
                     </div>
                     <div class="field" style="max-width: 80px;">
                         <label>Delay (h)</label>
-                        <input type="number" value="${entry.delayHours}" onchange="updateEntry(${index}, 'delayHours', parseInt(this.value))">
+                        <input type="number" step="0.01" value="${entry.delayHours}" onchange="updateEntry(${index}, 'delayHours', parseFloat(this.value))">
                     </div>
                     <div class="field" style="max-width: 80px;">
                         <label>Priority</label>
